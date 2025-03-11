@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Bem-vindo(a), {{ current_user.name }}</h2>
+        <p>Role: {{ current_user.role|title }}</p>
+    </div>
+</div>
+
+{% if current_user.role == 'teacher' %}
+<div class="row mt-4">
+    <div class="col-12">
+        <h3>My Courses</h3>
+        <div class="list-group">
+            {% for course in current_user.courses_teaching %}
+            <a href="{{ url_for('manage_grades', course_id=course.id) }}" class="list-group-item list-group-item-action">
+                {{ course.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if current_user.role == 'student' %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h3>Quick Links</h3>
+                <a href="{{ url_for('view_grades') }}" class="btn btn-primary">View My Grades</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ course.name }} - Grades</h2>
+    <a href="{{ url_for('generate_course_pdf', course_id=course.id) }}" class="btn btn-primary">
+        <i data-feather="download"></i> Download Course Report
+    </a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Grade</th>
+            <th>Attendance</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enrollment in enrollments %}
+        <tr>
+            <td>{{ enrollment.student.username }}</td>
+            <td>{{ enrollment.grade or 'Not graded' }}</td>
+            <td>{{ enrollment.attendance }}%</td>
+            <td>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#gradeModal{{ enrollment.id }}">
+                    Update
+                </button>
+            </td>
+        </tr>
+
+        <!-- Modal for each student -->
+        <div class="modal fade" id="gradeModal{{ enrollment.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Grades - {{ enrollment.student.username }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST">
+                            {{ form.hidden_tag() }}
+                            <input type="hidden" name="student_id" value="{{ enrollment.student.id }}">
+                            <div class="mb-3">
+                                {{ form.grade.label(class="form-label") }}
+                                {{ form.grade(class="form-control", value=enrollment.grade) }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.attendance.label(class="form-label") }}
+                                {{ form.attendance(class="form-control", value=enrollment.attendance) }}
+                            </div>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

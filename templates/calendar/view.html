@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Calendário Acadêmico</h2>
+            {% if current_user.role in ['admin', 'teacher'] %}
+            <a href="{{ url_for('add_event') }}" class="btn btn-primary">
+                <i data-feather="plus"></i> Adicionar Evento
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalhes do evento -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes do Evento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="eventTitle"></h4>
+                <p id="eventDescription"></p>
+                <p><strong>Início:</strong> <span id="eventStart"></span></p>
+                <p><strong>Fim:</strong> <span id="eventEnd"></span></p>
+                <p><strong>Tipo:</strong> <span id="eventType"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <a href="#" id="editEventBtn" class="btn btn-primary d-none">Editar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+<style>
+.event-type-aula { background-color: var(--bs-primary) !important; }
+.event-type-prova { background-color: var(--bs-danger) !important; }
+.event-type-feriado { background-color: var(--bs-success) !important; }
+.event-type-evento { background-color: var(--bs-info) !important; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: "{{ url_for('get_events') }}",
+        eventClick: function(info) {
+            var event = info.event;
+            document.getElementById('eventTitle').textContent = event.title;
+            document.getElementById('eventDescription').textContent = event.extendedProps.description || 'Sem descrição';
+            document.getElementById('eventStart').textContent = new Date(event.start).toLocaleString();
+            document.getElementById('eventEnd').textContent = new Date(event.end).toLocaleString();
+            document.getElementById('eventType').textContent = event.extendedProps.type;
+            
+            var editBtn = document.getElementById('editEventBtn');
+            {% if current_user.role in ['admin', 'teacher'] %}
+            editBtn.classList.remove('d-none');
+            editBtn.href = "/calendar/events/" + event.id + "/edit";
+            {% endif %}
+            
+            var modal = new bootstrap.Modal(document.getElementById('eventModal'));
+            modal.show();
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}
